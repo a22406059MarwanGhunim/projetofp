@@ -243,7 +243,7 @@ fun main() {
 }
 
 fun jogarNovoJogo() {
-    // Nome do jogador
+// Nome do jogador
     var nome = ""
     while (true) {
         println("Introduz o nome do jogador")
@@ -254,8 +254,7 @@ fun jogarNovoJogo() {
         }
         println(MENSAGEM_INVALIDA)
     }
-
-    // Mostrar legenda (s/n)
+// Mostrar legenda (s/n)
     var mostraLegenda = true
     while (true) {
         println("Mostrar legenda (s/n)")
@@ -265,18 +264,15 @@ fun jogarNovoJogo() {
             else -> println(MENSAGEM_INVALIDA)
         }
     }
-
-    // Linhas e colunas
+// Linhas e colunas
     val numLinhas = lerNumeroPositivo("Quantas linhas?")
     val numColunas = lerNumeroPositivo("Quantas colunas?")
-
-    // Minas
+// Minas
     var numMinas = 1
     while (true) {
         println("Quantas minas (ou enter para o valor por omissao)?")
         val input = readln().trim()
         if (input.isEmpty()) break
-
         var valor = 0
         var valido = true
         var k = 0
@@ -285,7 +281,6 @@ fun jogarNovoJogo() {
             else valor = valor * 10 + (input[k] - '0')
             k++
         }
-
         val maxPermitido = numLinhas * numColunas - 2
         if (valido && valor >= 0 && valor <= maxPermitido) {
             numMinas = valor
@@ -293,23 +288,19 @@ fun jogarNovoJogo() {
         }
         println(MENSAGEM_INVALIDA)
     }
-
-    // Inicialização do tabuleiro
+// Inicialização do tabuleiro
     var terreno = geraMatrizTerreno(numLinhas, numColunas, numMinas)
     preencheNumMinasNoTerreno(terreno)
-
-    // Revelação inicial ao redor do J em (0,0)
+// Revelação inicial ao redor do J em (0,0)
     revelaCelulasAoRedor(terreno, 0, 0)
-
     var posJogador = Pair(0, 0)
+    var underlyingCurrent = terreno[0][0].first
+    terreno[0][0] = Pair("J", true)
     var tudoReveladoPermanente = false
-
     while (true) {
         criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente)
-
         println("Para onde quer ir? (ex: 2B, 3C, etc)")
         val entrada = readln().trim()
-
         if (entrada.lowercase() == CHEAT_CODE) {
             tudoReveladoPermanente = true
             var i = 0
@@ -323,53 +314,43 @@ fun jogarNovoJogo() {
             }
             continue
         }
-
         val destino = obtemCoordenadas(entrada, numLinhas, numColunas)
         if (destino == null || !validaCoordenadasDentroTerreno(destino, numLinhas, numColunas)) {
             println(MENSAGEM_INVALIDA)
             continue
         }
-
         if (!validaMoveJogador(posJogador, destino)) {
             println(MENSAGEM_INVALIDA)
             continue
         }
-
         val (novaL, novaC) = destino
         val conteudoNovo = terreno[novaL][novaC].first
-
-        // Perde
-        if (conteudoNovo == "*") {
-            terreno[novaL][novaC] = Pair("*", true)
+// Perde
+        if (conteudoNovo == "") {
+            terreno[novaL][novaC] = Pair("", true)
             criaTerreno(terreno, mostraLegenda, true)
             println(MSG_PERDEU)
             break
         }
-
-        // Ganha (não move o J para f, só mostra o tabuleiro atual)
+// Ganha (não move o J para f, só mostra o tabuleiro atual)
         if (conteudoNovo == "f") {
             criaTerreno(terreno, mostraLegenda, true)
             println(MSG_GANHOU)
             break
         }
-
-        // Movimento normal
+// Movimento normal
         val eraVisivel = terreno[novaL][novaC].second
-
         if (!tudoReveladoPermanente) {
             escondeMatriz(terreno)
         }
-
-        // Restaura a posição antiga para " " (como pediste para todas as casas)
-        terreno[posJogador.first][posJogador.second] = Pair(" ", true)
-
-        // Coloca o novo J
+// Restaura a posição antiga para o conteúdo subjacente, mas invisível (deixa o reveal tratar se necessário)
+        terreno[posJogador.first][posJogador.second] = Pair(underlyingCurrent, false)
+// Coloca o novo J e atualiza o conteúdo subjacente
+        underlyingCurrent = conteudoNovo
         terreno[novaL][novaC] = Pair("J", true)
         posJogador = destino
-
-        // Revela ao redor SEMPRE que a nova casa era desconhecida
-        // (independentemente de ser número ou espaço)
-        if (!tudoReveladoPermanente && !eraVisivel) {
+// Revela ao redor se a nova casa era desconhecida ou se for um espaço vazio
+        if (!tudoReveladoPermanente && (!eraVisivel || conteudoNovo == " ")) {
             revelaCelulasAoRedor(terreno, novaL, novaC)
         }
     }
