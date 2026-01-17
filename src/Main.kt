@@ -212,7 +212,7 @@ fun criaTerreno(
         println()
 
         if (linha < numLinhas - 1) {
-            if (mostraLegenda) print("    ")
+            if (mostraLegenda) print("   ")
             var sep = 0
             while (sep < numColunas) {
                 print("---")
@@ -299,9 +299,9 @@ fun jogarNovoJogo() {
     preencheNumMinasNoTerreno(terreno)
 
     var posJogador = Pair(0, 0)
-    var underlyingCurrent = terreno[0][0].first
+    var underlyingCurrent = terreno[0][0].first  // conteúdo original da posição inicial
 
-    // Coloca o J inicial e revela ao redor (importante: underlyingCurrent NÃO é "J")
+    // Coloca o jogador na posição inicial e revela ao redor
     terreno[0][0] = Pair("J", true)
     revelaCelulasAoRedor(terreno, 0, 0)
 
@@ -344,7 +344,10 @@ fun jogarNovoJogo() {
         // DERROTA - pisou numa mina
         if (conteudoNovo == "*") {
             terreno[novaL][novaC] = Pair("*", true)
-            // J permanece na última posição válida
+            // Força a posição inicial para vazio se não for a posição atual
+            if (posJogador != Pair(0, 0)) {
+                terreno[0][0] = Pair(" ", true)
+            }
             criaTerreno(terreno, mostraLegenda, true)
             println(MSG_PERDEU)
             break
@@ -352,7 +355,10 @@ fun jogarNovoJogo() {
 
         // VITÓRIA - chegou à bandeira
         if (conteudoNovo == "f") {
-            // J permanece na última posição válida (não se move para a bandeira)
+            // Força a posição inicial para vazio se não for a posição atual
+            if (posJogador != Pair(0, 0)) {
+                terreno[0][0] = Pair(" ", true)
+            }
             criaTerreno(terreno, mostraLegenda, true)
             println(MSG_GANHOU)
             break
@@ -365,17 +371,19 @@ fun jogarNovoJogo() {
             escondeMatriz(terreno)
         }
 
-        // Restaura posição anterior com o valor REAL (nunca "J")
+        // Restaura a posição anterior (conteúdo original + invisível)
         terreno[posJogador.first][posJogador.second] = Pair(underlyingCurrent, false)
 
-        // Atualiza e move o J
+        // Move o jogador e guarda o novo conteúdo subjacente
         underlyingCurrent = conteudoNovo
         terreno[novaL][novaC] = Pair("J", true)
         posJogador = destino
 
-        // Revelação ao redor
-        if (!tudoReveladoPermanente && (!eraVisivel || conteudoNovo == " ")) {
-            revelaCelulasAoRedor(terreno, novaL, novaC)
+        // Revelação ao redor se necessário
+        if (!tudoReveladoPermanente) {
+            if (!eraVisivel || conteudoNovo == " ") {
+                revelaCelulasAoRedor(terreno, novaL, novaC)
+            }
         }
     }
 }
