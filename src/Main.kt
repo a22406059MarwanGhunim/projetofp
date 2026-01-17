@@ -298,7 +298,14 @@ fun jogarNovoJogo() {
     var terreno = geraMatrizTerreno(numLinhas, numColunas, numMinas)
     preencheNumMinasNoTerreno(terreno)
 
-    // Revelação inicial ao redor do J em (0,0)
+    // Guarda conteúdos originais para restaurar
+    val originalContent = Array(numLinhas) { i ->
+        Array(numColunas) { j ->
+            terreno[i][j].first
+        }
+    }
+
+    // Revelação inicial
     revelaCelulasAoRedor(terreno, 0, 0)
 
     var posJogador = Pair(0, 0)
@@ -337,8 +344,28 @@ fun jogarNovoJogo() {
 
         val (novaL, novaC) = destino
         val conteudoNovo = terreno[novaL][novaC].first
+        val eraVisivel = terreno[novaL][novaC].second
 
-        // Perde
+        // Esconde tudo antes do movimento (menos J e f)
+        if (!tudoReveladoPermanente) {
+            escondeMatriz(terreno)
+        }
+
+        // Restaura posição antiga (exceção para casa inicial)
+        val conteudoOriginalAntigo = originalContent[posJogador.first][posJogador.second]
+        terreno[posJogador.first][posJogador.second] = Pair(
+            if (posJogador.first == 0 && posJogador.second == 0) " " else conteudoOriginalAntigo,
+            true
+        )
+
+        // Coloca o novo J
+        terreno[novaL][novaC] = Pair("J", true)
+        posJogador = destino
+
+        // Revela SEMPRE as 8 casas ao redor do novo J
+        revelaCelulasAoRedor(terreno, novaL, novaC)
+
+        // Perde (mina)
         if (conteudoNovo == "*") {
             terreno[novaL][novaC] = Pair("*", true)
             criaTerreno(terreno, mostraLegenda, true)
@@ -346,31 +373,11 @@ fun jogarNovoJogo() {
             break
         }
 
-        // Ganha (não move o J para f, só mostra o tabuleiro atual)
+        // Ganha (não move J, mostra tudo revelado)
         if (conteudoNovo == "f") {
             criaTerreno(terreno, mostraLegenda, true)
             println(MSG_GANHOU)
             break
-        }
-
-        // Movimento normal
-        val eraVisivel = terreno[novaL][novaC].second
-
-        if (!tudoReveladoPermanente) {
-            escondeMatriz(terreno)
-        }
-
-        // Restaura a posição antiga para " " (como pediste para todas as casas)
-        terreno[posJogador.first][posJogador.second] = Pair(" ", true)
-
-        // Coloca o novo J
-        terreno[novaL][novaC] = Pair("J", true)
-        posJogador = destino
-
-        // Revela ao redor SEMPRE que a nova casa era desconhecida
-        // (independentemente de ser número ou espaço)
-        if (!tudoReveladoPermanente && !eraVisivel) {
-            revelaCelulasAoRedor(terreno, novaL, novaC)
         }
     }
 }
