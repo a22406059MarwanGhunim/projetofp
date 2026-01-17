@@ -661,3 +661,45 @@ fun lerFicheiroJogo(
 
     return matriz
 }
+
+
+fun revelaUmaMina(matrizTerreno: Array<Array<Pair<String, Boolean>>>) {
+    val numLinhas = matrizTerreno.size
+    if (numLinhas == 0) return
+    val numColunas = matrizTerreno[0].size
+
+    var i = 0
+    while (i < numLinhas) {
+        var j = 0
+        while (j < numColunas) {
+            if (matrizTerreno[i][j].first == "*" && !matrizTerreno[i][j].second) {
+                matrizTerreno[i][j] = Pair("*", true)
+                return  // Para na primeira mina oculta encontrada
+            }
+            j++
+        }
+        i++
+    }
+    // Se não encontrou nenhuma mina oculta, simplesmente retorna (não faz nada)
+}
+
+fun contaNumeroMinasNoCaminho(matrizTerreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int): Int {
+    val numLinhas = matrizTerreno.size
+    val numColunas = matrizTerreno[0].size
+
+    var contagem = 0
+
+    var i = linha
+    while (i < numLinhas) {
+        var j = coluna
+        while (j < numColunas) {
+            if (matrizTerreno[i][j].first == "*") {
+                contagem++
+            }
+            j++
+        }
+        i++
+    }
+
+    return contagem
+}
