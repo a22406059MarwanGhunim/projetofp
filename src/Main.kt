@@ -299,9 +299,9 @@ fun jogarNovoJogo() {
     preencheNumMinasNoTerreno(terreno)
 
     var posJogador = Pair(0, 0)
-    var underlyingCurrent = terreno[0][0].first  // Guarda o conteúdo original de (0,0)
+    var underlyingCurrent = terreno[0][0].first
 
-    // Coloca o J na posição inicial e revela ao redor
+    // Coloca o J inicial e revela ao redor (importante: underlyingCurrent NÃO é "J")
     terreno[0][0] = Pair("J", true)
     revelaCelulasAoRedor(terreno, 0, 0)
 
@@ -339,22 +339,20 @@ fun jogarNovoJogo() {
         }
 
         val (novaL, novaC) = destino
-
-        // IMPORTANTE: obtemos o conteúdo REAL antes de qualquer alteração
         val conteudoNovo = terreno[novaL][novaC].first
 
-        // Verificação de derrota ANTES de mover
+        // DERROTA - pisou numa mina
         if (conteudoNovo == "*") {
-            // Revela a mina onde o jogador pisou
             terreno[novaL][novaC] = Pair("*", true)
+            // J permanece na última posição válida
             criaTerreno(terreno, mostraLegenda, true)
             println(MSG_PERDEU)
             break
         }
 
-        // Verificação de vitória
+        // VITÓRIA - chegou à bandeira
         if (conteudoNovo == "f") {
-            // Mostra o tabuleiro final (com J na posição atual)
+            // J permanece na última posição válida (não se move para a bandeira)
             criaTerreno(terreno, mostraLegenda, true)
             println(MSG_GANHOU)
             break
@@ -363,29 +361,24 @@ fun jogarNovoJogo() {
         // Movimento normal
         val eraVisivel = terreno[novaL][novaC].second
 
-        // Esconde tudo (se não estiver em modo cheat)
         if (!tudoReveladoPermanente) {
             escondeMatriz(terreno)
         }
 
-        // Restaura a posição antiga (conteúdo original, mas invisível por enquanto)
+        // Restaura posição anterior com o valor REAL (nunca "J")
         terreno[posJogador.first][posJogador.second] = Pair(underlyingCurrent, false)
 
-        // Move o jogador e guarda o novo conteúdo subjacente
+        // Atualiza e move o J
         underlyingCurrent = conteudoNovo
         terreno[novaL][novaC] = Pair("J", true)
         posJogador = destino
 
-        // Revela ao redor da nova posição se necessário
-        if (!tudoReveladoPermanente) {
-            // Revela sempre quando chegamos a uma casa nova ou a um espaço vazio
-            if (!eraVisivel || conteudoNovo == " ") {
-                revelaCelulasAoRedor(terreno, novaL, novaC)
-            }
+        // Revelação ao redor
+        if (!tudoReveladoPermanente && (!eraVisivel || conteudoNovo == " ")) {
+            revelaCelulasAoRedor(terreno, novaL, novaC)
         }
     }
 }
-
 
 fun lerNumeroPositivo(mensagem: String): Int {
     while (true) {
