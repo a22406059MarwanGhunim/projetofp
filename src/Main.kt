@@ -299,7 +299,7 @@ fun jogarNovoJogo() {
     var tudoReveladoPermanente = false
     while (true) {
         criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente)
-        println("Para onde quer ir? (ex: 2B, 3C, etc)")
+        println("Para onde quer ir? (ex: 2B)")
         val entrada = readln().trim()
         if (entrada.lowercase() == CHEAT_CODE) {
             tudoReveladoPermanente = true
