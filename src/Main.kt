@@ -8,27 +8,37 @@ const val CHEAT_CODE = "abracadabra"
 
 fun obtemCoordenadas(entrada: String, numLinhas: Int, numColunas: Int): Pair<Int, Int>? {
     val trimmed = entrada.trim().uppercase()
-    if (trimmed.isEmpty() || trimmed.length < 2) return null
+    if (trimmed.isEmpty() || trimmed.length < 2){
+        return null
+    }
 
-    if (!trimmed[0].isDigit() || !trimmed.last().isLetter()) return null
+    if (!trimmed[0].isDigit() || !trimmed.last().isLetter()){
+        return null
+    }
 
     val numeroStr = trimmed.dropLast(1)
     val letra = trimmed.last()
 
     val coluna = letra - 'A'
-    if (coluna < 0 || coluna >= numColunas) return null
+    if (coluna < 0 || coluna >= numColunas) {
+        return null
+    }
 
     var numero = 0
-    var i = 0
-    while (i < numeroStr.length) {
-        val digito = numeroStr[i]
-        if (digito < '0' || digito > '9') return null
+    var iProx = 0
+    while (iProx < numeroStr.length) {
+        val digito = numeroStr[iProx]
+        if (digito < '0' || digito > '9'){
+            return null
+        }
         numero = numero * 10 + (digito - '0')
-        i++
+        iProx++
     }
 
     val linha = numero - 1
-    if (linha < 0 || linha >= numLinhas) return null
+    if (linha < 0 || linha >= numLinhas) {
+        return null
+    }
 
     return Pair(linha, coluna)
 }
@@ -39,13 +49,15 @@ fun validaCoordenadasDentroTerreno(coord: Pair<Int, Int>, numLinhas: Int, numCol
 }
 
 fun validaMoveJogador(origem: Pair<Int, Int>, destino: Pair<Int, Int>): Boolean {
-    val (oL, oC) = origem
-    val (dL, dC) = destino
+    val (origemLinha, origemColuna) = origem
+    val (destinoLinha, destinoColuna) = destino
 
-    if (oL == dL && oC == dC) return false
+    if (origemLinha == destinoLinha && origemColuna == destinoColuna){
+        return false
+    }
 
-    val difL = kotlin.math.abs(dL - oL)
-    val difC = kotlin.math.abs(dC - oC)
+    val difL = kotlin.math.abs(destinoLinha - origemLinha)
+    val difC = kotlin.math.abs(destinoColuna - origemColuna)
 
     return difL <= 2 && difC <= 2
 }
@@ -64,18 +76,18 @@ fun contaMinasPerto(terreno: Array<Array<Pair<String, Boolean>>>, linha: Int, co
     val (y2, x2) = limites.second
 
     var contagem = 0
-    var i = y1
-    while (i <= y2) {
-        var j = x1
-        while (j <= x2) {
-            if (i == linha && j == coluna) {
-                j++
+    var coordenadaLinha = y1
+    while (coordenadaLinha <= y2) {
+        var coordenadaColuna = x1
+        while (coordenadaColuna <= x2) {
+            if (coordenadaLinha == linha && coordenadaColuna == coluna) {
+                coordenadaColuna++
                 continue
             }
-            if (terreno[i][j].first == "*") contagem++
-            j++
+            if (terreno[coordenadaLinha][coordenadaColuna].first == "*") contagem++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
     return contagem
 }
@@ -88,14 +100,14 @@ fun geraMatrizTerreno(numLinhas: Int, numColunas: Int, numMinas: Int): Array<Arr
 
     var minasColocadas = 0
     while (minasColocadas < numMinas) {
-        val l = Random.nextInt(numLinhas)
-        val c = Random.nextInt(numColunas)
+        val linha = Random.nextInt(numLinhas)
+        val coluna = Random.nextInt(numColunas)
 
-        if (terreno[l][c].first == " " &&
-            !(l == 0 && c == 0) &&
-            !(l == numLinhas - 1 && c == numColunas - 1)
+        if (terreno[linha][coluna].first == " " &&
+            !(linha == 0 && coluna == 0) &&
+            !(linha == numLinhas - 1 && coluna == numColunas - 1)
         ) {
-            terreno[l][c] = Pair("*", false)
+            terreno[linha][coluna] = Pair("*", false)
             minasColocadas++
         }
     }
@@ -106,21 +118,24 @@ fun preencheNumMinasNoTerreno(terreno: Array<Array<Pair<String, Boolean>>>) {
     val linhas = terreno.size
     val colunas = terreno[0].size
 
-    var i = 0
-    while (i < linhas) {
-        var j = 0
-        while (j < colunas) {
-            val atual = terreno[i][j].first
+    var coordenadaLinha = 0
+    while (coordenadaLinha < linhas) {
+        var coordenadaColuna = 0
+        while (coordenadaColuna < colunas) {
+            val atual = terreno[coordenadaLinha][coordenadaColuna].first
             if (atual != "*" && atual != "J" && atual != "f") {
-                val num = contaMinasPerto(terreno, i, j)
-                terreno[i][j] = Pair(
-                    if (num == 0) " " else num.toString(),
-                    terreno[i][j].second
+                val num = contaMinasPerto(terreno, coordenadaLinha, coordenadaColuna)
+                terreno[coordenadaLinha][coordenadaColuna] = Pair(
+                    if (num == 0){
+                        " "
+                    } else{
+                        num.toString()
+                    }, terreno[coordenadaLinha][coordenadaColuna].second
                 )
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
 }
 
@@ -129,41 +144,43 @@ fun revelaCelulasAoRedor(terreno: Array<Array<Pair<String, Boolean>>>, linha: In
     val (y1, x1) = limites.first
     val (y2, x2) = limites.second
 
-    var i = y1
-    while (i <= y2) {
-        var j = x1
-        while (j <= x2) {
-            val conteudo = terreno[i][j].first
+    var coordenadaLinha = y1
+    while (coordenadaLinha <= y2) {
+        var coordenadaColuna = x1
+        while (coordenadaColuna <= x2) {
+            val conteudo = terreno[coordenadaLinha][coordenadaColuna].first
             if (conteudo != "*" && conteudo != "J" && conteudo != "f") {
-                terreno[i][j] = Pair(conteudo, true)
+                terreno[coordenadaLinha][coordenadaColuna] = Pair(conteudo, true)
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
 }
 
 fun celulaTemNumeroMinasVisivel(terreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int): Boolean {
     val (conteudo, visivel) = terreno[linha][coluna]
-    if (!visivel) return false
+    if (!visivel){
+        return false
+    }
     return conteudo.length == 1 && conteudo[0] in '1'..'8'
 }
 
 fun escondeMatriz(terreno: Array<Array<Pair<String, Boolean>>>) {
-    var i = 0
+    var coordenadaLinha = 0
     val linhas = terreno.size
     val colunas = terreno[0].size
 
-    while (i < linhas) {
-        var j = 0
-        while (j < colunas) {
-            val conteudo = terreno[i][j].first
+    while (coordenadaLinha < linhas) {
+        var coordenadaColuna = 0
+        while (coordenadaColuna < colunas) {
+            val conteudo = terreno[coordenadaLinha][coordenadaColuna].first
             if (conteudo != "J" && conteudo != "f") {
-                terreno[i][j] = Pair(conteudo, false)
+                terreno[coordenadaLinha][coordenadaColuna] = Pair(conteudo, false)
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
 }
 
@@ -547,13 +564,19 @@ fun lerNumeroPositivo(mensagem: String): Int {
         val input = readln().trim()
         var valor = 0
         var valido = input.isNotEmpty()
-        var k = 0
-        while (k < input.length && valido) {
-            if (input[k] !in '0'..'9') valido = false
-            else valor = valor * 10 + (input[k] - '0')
-            k++
+        var coordenada = 0
+        while (coordenada < input.length && valido) {
+            if (input[coordenada] !in '0'..'9') {
+                valido = false
+            }
+            else{
+                valor = valor * 10 + (input[coordenada] - '0')
+            }
+            coordenada++
         }
-        if (valido && valor > 0) return valor
+        if (valido && valor > 0) {
+            return valor
+        }
         println(MENSAGEM_INVALIDA)
     }
 }
@@ -562,23 +585,27 @@ fun validaNome(nome: String, minLetras: Int = 3): Boolean {
     var espacos = 0
     var contadorAtual = 0
     var primeiraDaPalavra = true
-    var i = 0
+    var cLetra = 0
 
-    while (i < nome.length) {
-        val c = nome[i]
+    while (cLetra < nome.length) {
+        val c = nome[cLetra]
         if (c == ' ') {
-            if (contadorAtual < minLetras) return false
+            if (contadorAtual < minLetras){
+                return false
+            }
             espacos++
             contadorAtual = 0
             primeiraDaPalavra = true
         } else {
             if (primeiraDaPalavra) {
-                if (c != c.uppercaseChar()) return false
+                if (c != c.uppercaseChar()){
+                    return false
+                }
                 primeiraDaPalavra = false
             }
             contadorAtual++
         }
-        i++
+        cLetra++
     }
 
     if (contadorAtual < minLetras) return false
@@ -668,17 +695,17 @@ fun revelaUmaMina(matrizTerreno: Array<Array<Pair<String, Boolean>>>) {
     if (numLinhas == 0) return
     val numColunas = matrizTerreno[0].size
 
-    var i = 0
-    while (i < numLinhas) {
-        var j = 0
-        while (j < numColunas) {
-            if (matrizTerreno[i][j].first == "*" && !matrizTerreno[i][j].second) {
-                matrizTerreno[i][j] = Pair("*", true)
+    var coordenadaLinha = 0
+    while (coordenadaLinha < numLinhas) {
+        var coordenadaColuna = 0
+        while (coordenadaColuna < numColunas) {
+            if (matrizTerreno[coordenadaLinha][coordenadaColuna].first == "*" && !matrizTerreno[coordenadaLinha][coordenadaColuna].second) {
+                matrizTerreno[coordenadaLinha][coordenadaColuna] = Pair("*", true)
                 return  // Para na primeira mina oculta encontrada
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
     // Se não encontrou nenhuma mina oculta, simplesmente retorna (não faz nada)
 }
@@ -689,16 +716,16 @@ fun contaNumeroMinasNoCaminho(matrizTerreno: Array<Array<Pair<String, Boolean>>>
 
     var contagem = 0
 
-    var i = linha
-    while (i < numLinhas) {
-        var j = coluna
-        while (j < numColunas) {
-            if (matrizTerreno[i][j].first == "*") {
+    var coordenadaLinha = linha
+    while (coordenadaLinha < numLinhas) {
+        var coordenadaColuna = coluna
+        while (coordenadaColuna < numColunas) {
+            if (matrizTerreno[coordenadaLinha][coordenadaColuna].first == "*") {
                 contagem++
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
 
     return contagem
