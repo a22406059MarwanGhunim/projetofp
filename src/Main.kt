@@ -72,9 +72,7 @@ fun revelaMatriz(matrizTerreno: Array<Array<Pair<String, Boolean>>>, linha: Int,
     return copia
 }
 
-fun validaTerreno(): Boolean {
-    return true
-}
+fun validaTerreno(): Boolean = true
 
 fun obtemCoordenadas(entrada: String, numLinhas: Int, numColunas: Int): Pair<Int, Int>? {
     val trimmed = entrada.trim().uppercase()
@@ -124,11 +122,11 @@ fun validaMovimentoJogador(origem: Pair<Int, Int>, destino: Pair<Int, Int>): Boo
 }
 
 fun quadradoAVoltaDoPonto(linha: Int, coluna: Int, numLinhas: Int, numColunas: Int): Pair<Pair<Int, Int>, Pair<Int, Int>> {
-    val y1 = maxOf(0, linha - 1)
-    val x1 = maxOf(0, coluna - 1)
-    val y2 = minOf(numLinhas - 1, linha + 1)
-    val x2 = minOf(numColunas - 1, coluna + 1)
-    return Pair(Pair(y1, x1), Pair(y2, x2))
+    val yUm = maxOf(0, linha - 1)
+    val xUm = maxOf(0, coluna - 1)
+    val yDois = minOf(numLinhas - 1, linha + 1)
+    val xDois = minOf(numColunas - 1, coluna + 1)
+    return Pair(Pair(yUm, xUm), Pair(yDois, xDois))
 }
 
 fun contaMinasPerto(terreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int): Int {
@@ -329,8 +327,8 @@ fun validaNome(nome: String, minLetras: Int = 3): Boolean {
     var primeiraDaPalavra = true
     var cLetra = 0
     while (cLetra < nome.length) {
-        val c = nome[cLetra]
-        if (c == ' ') {
+        val cooord = nome[cLetra]
+        if (cooord == ' ') {
             if (contadorAtual < minLetras){
                 return false
             }
@@ -339,7 +337,7 @@ fun validaNome(nome: String, minLetras: Int = 3): Boolean {
             primeiraDaPalavra = true
         } else {
             if (primeiraDaPalavra) {
-                if (c != c.uppercaseChar()){
+                if (cooord != cooord.uppercaseChar()){
                     return false
                 }
                 primeiraDaPalavra = false
@@ -497,14 +495,14 @@ fun jogarNovoJogo() {
 
         if (entrada.lowercase() == CHEAT_CODE) {
             tudoReveladoPermanente = true
-            var i = 0
-            while (i < numLinhas) {
-                var j = 0
-                while (j < numColunas) {
-                    terreno[i][j] = Pair(terreno[i][j].first, true)
-                    j++
+            var coordenadaLinha = 0
+            while (coordenadaLinha < numLinhas) {
+                var coordenadaColuna = 0
+                while (coordenadaColuna < numColunas) {
+                    terreno[coordenadaLinha][coordenadaColuna] = Pair(terreno[coordenadaLinha][coordenadaColuna].first, true)
+                    coordenadaColuna++
                 }
-                i++
+                coordenadaLinha++
             }
             continue
         }
@@ -571,6 +569,7 @@ fun jogarNovoJogo() {
 }
 
 fun main() {
+
     println("Bem vindo ao Campo DEISIado")
     println(criaMenu())
 
@@ -583,4 +582,45 @@ fun main() {
         }
         println(criaMenu())
     }
+}
+
+fun revelaUmaMina(matrizTerreno: Array<Array<Pair<String, Boolean>>>) {
+    val numLinhas = matrizTerreno.size
+    if (numLinhas == 0) return
+    val numColunas = matrizTerreno[0].size
+
+    var i = 0
+    while (i < numLinhas) {
+        var j = 0
+        while (j < numColunas) {
+            if (matrizTerreno[i][j].first == "*" && !matrizTerreno[i][j].second) {
+                matrizTerreno[i][j] = Pair("*", true)
+                return  // Para na primeira mina oculta encontrada (ordem linha-coluna)
+            }
+            j++
+        }
+        i++
+    }
+    // Se não encontrou mina oculta, não faz nada
+}
+
+fun contaNumeroMinasNoCaminho(matrizTerreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int): Int {
+    val numLinhas = matrizTerreno.size
+    val numColunas = matrizTerreno[0].size
+
+    var contagem = 0
+
+    var i = linha
+    while (i < numLinhas) {
+        var j = coluna
+        while (j < numColunas) {
+            if (matrizTerreno[i][j].first == "*") {
+                contagem++
+            }
+            j++
+        }
+        i++
+    }
+
+    return contagem
 }
