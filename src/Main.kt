@@ -132,7 +132,13 @@ fun quadradoAVoltaDoPonto(linha: Int, coluna: Int, numLinhas: Int, numColunas: I
 }
 
 fun contaMinasPerto(terreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int): Int {
-    val limites = quadradoAVoltaDoPonto(linha, coluna, terreno.size, terreno[0].size)
+
+    if (terreno.isEmpty() || terreno[0].isEmpty()){
+        return 0
+    }
+    val numLinhas = terreno.size
+    val numColunas = terreno[0].size
+    val limites = quadradoAVoltaDoPonto(linha, coluna, numLinhas, numColunas)
     val (y1, x1) = limites.first
     val (y2, x2) = limites.second
     var contagem = 0
