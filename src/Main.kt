@@ -45,33 +45,24 @@ fun criaLegenda(colunas: Int): String {
     return legenda
 }
 
-fun revelaMatriz(matrizTerreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int): Array<Array<Pair<String, Boolean>>> {
-    val copia = Array(matrizTerreno.size) { i ->
-        Array(matrizTerreno[0].size) { j ->
-            matrizTerreno[i][j].copy()
-        }
-    }
-
+fun revelaMatriz(matrizTerreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int) {
     val limites = quadradoAVoltaDoPonto(linha, coluna, matrizTerreno.size, matrizTerreno[0].size)
     val (y1, x1) = limites.first
     val (y2, x2) = limites.second
 
-    var coordenadaLinhas = y1
-    while (coordenadaLinhas <= y2) {
+    var coordenadaLinha = y1
+    while (coordenadaLinha <= y2) {
         var coordenadaColuna = x1
         while (coordenadaColuna <= x2) {
-            val conteudo = copia[coordenadaLinhas][coordenadaColuna].first
+            val conteudo = matrizTerreno[coordenadaLinha][coordenadaColuna].first
             if (conteudo != "*" && conteudo != "J" && conteudo != "f") {
-                copia[coordenadaLinhas][coordenadaColuna] = Pair(conteudo, true)
+                matrizTerreno[coordenadaLinha][coordenadaColuna] = Pair(conteudo, true)
             }
             coordenadaColuna++
         }
-        coordenadaLinhas++
+        coordenadaLinha++
     }
-
-    return copia
 }
-
 fun validaTerreno(terreno: Array<Array<Pair<String, Boolean>>>): Boolean{
     return true
 }
@@ -471,7 +462,7 @@ fun jogarNovoJogo() {
 
         var valor = 0
         var valido = true
-        var     konta = 0
+        var konta = 0
         while (konta < input.length && valido) {
             if (input[konta] !in '0'..'9'){
                 valido = false
@@ -573,10 +564,10 @@ fun jogarNovoJogo() {
         terreno[novaL][novaC] = Pair("J", true)
         posJogador = destino
 
-        // Revela ao redor se necessário
+        // Revela ao redor se necessário (chamada corrigida: não atribui retorno)
         if (!tudoReveladoPermanente) {
             if (!eraVisivel || conteudoNovo == " ") {
-                terreno = revelaMatriz(terreno, novaL, novaC)
+                revelaMatriz(terreno, novaL, novaC)
             }
         }
     }
