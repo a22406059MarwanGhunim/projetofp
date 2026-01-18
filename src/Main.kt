@@ -72,7 +72,9 @@ fun revelaMatriz(matrizTerreno: Array<Array<Pair<String, Boolean>>>, linha: Int,
     return copia
 }
 
-fun validaTerreno(): Boolean = true
+fun validaTerreno(terreno: Array<Array<Pair<String, Boolean>>>): Boolean{
+    return true
+}
 
 fun obtemCoordenadas(entrada: String, numLinhas: Int, numColunas: Int): Pair<Int, Int>? {
     val trimmed = entrada.trim().uppercase()
@@ -589,17 +591,17 @@ fun revelaUmaMina(matrizTerreno: Array<Array<Pair<String, Boolean>>>) {
     if (numLinhas == 0) return
     val numColunas = matrizTerreno[0].size
 
-    var i = 0
-    while (i < numLinhas) {
-        var j = 0
-        while (j < numColunas) {
-            if (matrizTerreno[i][j].first == "*" && !matrizTerreno[i][j].second) {
-                matrizTerreno[i][j] = Pair("*", true)
+    var coordenadaLinha = 0
+    while (coordenadaLinha < numLinhas) {
+        var coordenadaColuna = 0
+        while (coordenadaColuna < numColunas) {
+            if (matrizTerreno[coordenadaLinha][coordenadaColuna].first == "*" && !matrizTerreno[coordenadaLinha][coordenadaColuna].second) {
+                matrizTerreno[coordenadaLinha][coordenadaColuna] = Pair("*", true)
                 return  // Para na primeira mina oculta encontrada (ordem linha-coluna)
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
     // Se não encontrou mina oculta, não faz nada
 }
@@ -610,16 +612,16 @@ fun contaNumeroMinasNoCaminho(matrizTerreno: Array<Array<Pair<String, Boolean>>>
 
     var contagem = 0
 
-    var i = linha
-    while (i < numLinhas) {
-        var j = coluna
-        while (j < numColunas) {
-            if (matrizTerreno[i][j].first == "*") {
+    var coordenadaLinha = linha
+    while (coordenadaLinha < numLinhas) {
+        var coordenadaColuna = coluna
+        while (coordenadaColuna < numColunas) {
+            if (matrizTerreno[coordenadaLinha][coordenadaColuna].first == "*") {
                 contagem++
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coordenadaLinha++
     }
 
     return contagem
