@@ -6,8 +6,6 @@ const val MSG_GANHOU = "Ganhaste o jogo!"
 const val MSG_PERDEU = "Perdeste o jogo!"
 const val CHEAT_CODE = "abracadabra"
 
-// Funções novas obrigatórias para o recurso
-
 fun criaMenu(): String? {
     return "\nBem vindo ao Campo DEISIado\n\n1 - Novo Jogo\n2 - Ler Jogo\n0 - Sair\n"
 }
@@ -63,20 +61,23 @@ fun revelaMatriz(matrizTerreno: Array<Array<Pair<String, Boolean>>>, linha: Int,
         coordenadaLinha++
     }
 }
+
 fun validaTerreno(terreno: Array<Array<Pair<String, Boolean>>>): Boolean{
     return true
 }
 
-fun obtemCoordenadas(entrada: String?): Pair<Int, Int> {
-    if (entrada == null) return Pair(-1, -1)  // ou outro valor inválido
+fun obtemCoordenadas(entrada: String?): Pair<Int, Int>? {
+    if (entrada == null){
+        return null
+    }  // ou outro valor inválido
 
     val trimmed = entrada.trim().uppercase()
     if (trimmed.isEmpty() || trimmed.length < 2) {
-        return Pair(-1, -1)
+        return null
     }
 
     if (!trimmed[0].isDigit() || !trimmed.last().isLetter()) {
-        return Pair(-1, -1)
+        return null
     }
 
     val numeroStr = trimmed.dropLast(1)
@@ -88,7 +89,7 @@ fun obtemCoordenadas(entrada: String?): Pair<Int, Int> {
     while (count < numeroStr.length) {
         val digito = numeroStr[count]
         if (digito < '0' || digito > '9') {
-            return Pair(-1, -1)
+            return null
         }
         numero = numero * 10 + (digito - '0')
         count++
@@ -257,6 +258,7 @@ fun criaTerreno(terreno: Array<Array<Pair<String, Boolean>>>, mostraLegenda: Boo
             } // 3 espaços
             count++
         }
+        print("    ")
         println()
     }
     var linha = 0
@@ -297,6 +299,7 @@ fun criaTerreno(terreno: Array<Array<Pair<String, Boolean>>>, mostraLegenda: Boo
                 }
                 sep++
             }
+            print("   ")
             println()
         }
         linha++
@@ -438,7 +441,7 @@ fun jogarNovoJogo() {
     // Mostrar legenda (s/n)
     var mostraLegenda = true
     while (true) {
-        println("Mostrar legenda (s/n)")
+        println("Mostrar legenda (s/n)?")
         when (readln().trim().lowercase()) {
             "s" -> { mostraLegenda = true; break }
             "n" -> { mostraLegenda = false; break }
@@ -481,7 +484,7 @@ fun jogarNovoJogo() {
     }
 
     // Inicialização do tabuleiro
-    var terreno = geraMatrizTerreno(numLinhas, numColunas, numMinas)
+    val terreno = geraMatrizTerreno(numLinhas, numColunas, numMinas)
     preencheNumMinasNoTerreno(terreno)
 
     var posJogador = Pair(0, 0)
@@ -492,10 +495,16 @@ fun jogarNovoJogo() {
     revelaCelulasAoRedor(terreno, 0, 0)
 
     var tudoReveladoPermanente = false
+    var ajudas = 1  // Inicializa com 1 ajuda disponível
 
     while (true) {
         criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente)
-        println("Para onde quer ir? (ex: 2B, 3C, etc)")
+
+        // Exibe mensagens de ajudas e minas no caminho
+        println("\nAinda tens $ajudas ajudas")
+        println("Faltam ${contaNumeroMinasNoCaminho(terreno, posJogador.first, posJogador.second)} minas até ao fim")
+
+        println("Introduz a celula destino (ex: 2D)")
         val entrada = readln().trim()
 
         if (entrada.lowercase() == CHEAT_CODE) {
@@ -512,14 +521,25 @@ fun jogarNovoJogo() {
             continue
         }
 
+        if (entrada.lowercase() == "ajuda") {
+            if (ajudas > 0) {
+                revelaUmaMina(terreno)
+                ajudas = 0  // Decrementa para 0 após usar
+                continue
+            } else {
+                println(MENSAGEM_INVALIDA)
+                continue
+            }
+        }
+
         val destino = obtemCoordenadas(entrada)
         if (destino == null || !validaCoordenadasDentroTerreno(destino, numLinhas, numColunas)) {
-            println(MENSAGEM_INVALIDA)
+            println("Movimento invalido.")
             continue
         }
 
         if (!validaMovimentoJogador(posJogador, destino)) {
-            println(MENSAGEM_INVALIDA)
+            println("Movimento invalido.")
             continue
         }
 
