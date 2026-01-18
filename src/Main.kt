@@ -9,7 +9,7 @@ const val CHEAT_CODE = "abracadabra"
 // Funções novas obrigatórias para o recurso
 
 fun criaMenu(): String? {
-    return "\n1 - Novo Jogo\n2 - Ler Jogo\n0 - Sair\n"
+    return "\nBem vindo ao Campo DEISIado\n\n1 - Novo Jogo\n2 - Ler Jogo\n0 - Sair\n"
 }
 
 fun validaNumeroDeMinas(linhas: Int, colunas: Int, numMinas: Int): Boolean {
@@ -76,34 +76,36 @@ fun validaTerreno(terreno: Array<Array<Pair<String, Boolean>>>): Boolean{
     return true
 }
 
-fun obtemCoordenadas(entrada: String, numLinhas: Int, numColunas: Int): Pair<Int, Int>? {
+fun obtemCoordenadas(entrada: String?): Pair<Int, Int> {
+    if (entrada == null) return Pair(-1, -1)  // ou outro valor inválido
+
     val trimmed = entrada.trim().uppercase()
     if (trimmed.isEmpty() || trimmed.length < 2) {
-        return null
+        return Pair(-1, -1)
     }
-    if (!trimmed[0].isDigit() || !trimmed.last().isLetter()){
-        return null
+
+    if (!trimmed[0].isDigit() || !trimmed.last().isLetter()) {
+        return Pair(-1, -1)
     }
+
     val numeroStr = trimmed.dropLast(1)
     val letra = trimmed.last()
     val coluna = letra - 'A'
-    if (coluna < 0 || coluna >= numColunas){
-        return null
-    }
+
     var numero = 0
-    var iProx = 0
-    while (iProx < numeroStr.length) {
-        val digito = numeroStr[iProx]
-        if (digito < '0' || digito > '9'){
-            return null
+    var count = 0
+    while (count < numeroStr.length) {
+        val digito = numeroStr[count]
+        if (digito < '0' || digito > '9') {
+            return Pair(-1, -1)
         }
         numero = numero * 10 + (digito - '0')
-        iProx++
+        count++
     }
+
     val linha = numero - 1
-    if (linha < 0 || linha >= numLinhas){
-        return null
-    }
+
+    // Retorna sempre um Pair (mesmo inválido), como o enunciado exige
     return Pair(linha, coluna)
 }
 
@@ -132,31 +134,35 @@ fun quadradoAVoltaDoPonto(linha: Int, coluna: Int, numLinhas: Int, numColunas: I
 }
 
 fun contaMinasPerto(terreno: Array<Array<Pair<String, Boolean>>>, linha: Int, coluna: Int): Int {
-
-    if (terreno.isEmpty() || terreno[0].isEmpty()){
+    if (terreno.isEmpty() || terreno[0].isEmpty()) {
         return 0
     }
+
     val numLinhas = terreno.size
     val numColunas = terreno[0].size
     val limites = quadradoAVoltaDoPonto(linha, coluna, numLinhas, numColunas)
     val (y1, x1) = limites.first
     val (y2, x2) = limites.second
+
     var contagem = 0
+
     var coordenadaLinha = y1
     while (coordenadaLinha <= y2) {
         var coordenadaColuna = x1
         while (coordenadaColuna <= x2) {
-            if (coordenadaLinha == linha && coordenadaColuna == coluna) {
-                coordenadaColuna++
-                continue
+            val mesmaCelula = (coordenadaLinha == linha && coordenadaColuna == coluna)
+
+            if (!mesmaCelula) {
+                if (terreno[coordenadaLinha][coordenadaColuna].first == "*") {
+                    contagem++
+                }
             }
-            if (terreno[coordenadaLinha][coordenadaColuna].first == "*") {
-                contagem++
-            }
+
             coordenadaColuna++
         }
         coordenadaLinha++
     }
+
     return contagem
 }
 
@@ -329,7 +335,7 @@ fun lerNumeroPositivo(mensagem: String): Int {
     }
 }
 
-fun validaNome(nome: String, minLetras: Int = 3): Boolean {
+fun validaNome(nome: String, tamanhoMinimo: Int = 3): Boolean {
     var espacos = 0
     var contadorAtual = 0
     var primeiraDaPalavra = true
@@ -337,7 +343,7 @@ fun validaNome(nome: String, minLetras: Int = 3): Boolean {
     while (cLetra < nome.length) {
         val cooord = nome[cLetra]
         if (cooord == ' ') {
-            if (contadorAtual < minLetras){
+            if (contadorAtual < tamanhoMinimo){
                 return false
             }
             espacos++
@@ -354,7 +360,7 @@ fun validaNome(nome: String, minLetras: Int = 3): Boolean {
         }
         cLetra++
     }
-    if (contadorAtual < minLetras){
+    if (contadorAtual < tamanhoMinimo){
         return false
     }
     espacos++
@@ -465,7 +471,7 @@ fun jogarNovoJogo() {
 
         var valor = 0
         var valido = true
-        var konta = 0
+        var     konta = 0
         while (konta < input.length && valido) {
             if (input[konta] !in '0'..'9'){
                 valido = false
@@ -515,7 +521,7 @@ fun jogarNovoJogo() {
             continue
         }
 
-        val destino = obtemCoordenadas(entrada, numLinhas, numColunas)
+        val destino = obtemCoordenadas(entrada)
         if (destino == null || !validaCoordenadasDentroTerreno(destino, numLinhas, numColunas)) {
             println(MENSAGEM_INVALIDA)
             continue
@@ -578,7 +584,6 @@ fun jogarNovoJogo() {
 
 fun main() {
 
-    println("Bem vindo ao Campo DEISIado")
     println(criaMenu())
 
     while (true) {
