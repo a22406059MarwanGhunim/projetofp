@@ -11,7 +11,7 @@ fun criaMenu(): String? {
 }
 
 fun validaNumeroDeMinas(linhas: Int, colunas: Int, numMinas: Int): Boolean {
-    if (numMinas < 0){
+    if (numMinas <= 0){
         return false
     }
     val celulasLivres = linhas * colunas - 2
@@ -428,24 +428,32 @@ fun lerFicheiroJogo(caminhoInput: String,linhasEsperadas: Int,colunasEsperadas: 
 fun jogarNovoJogo() {
     // Nome do jogador
     var nome = ""
-    while (true) {
+    var nomeValido = false
+    while (!nomeValido) {
         println("Introduz o nome do jogador")
         val input = readln().trim()
         if (validaNome(input)) {
             nome = input
-            break
+            nomeValido = true
+        } else {
+            println(MENSAGEM_INVALIDA)
         }
-        println(MENSAGEM_INVALIDA)
     }
 
     // Mostrar legenda (s/n)
     var mostraLegenda = true
-    while (true) {
+    var legendaValida = false
+    while (!legendaValida) {
         println("Mostrar legenda (s/n)?")
-        when (readln().trim().lowercase()) {
-            "s" -> { mostraLegenda = true; break }
-            "n" -> { mostraLegenda = false; break }
-            else -> println(MENSAGEM_INVALIDA)
+        val resposta = readln().trim().lowercase()
+        if (resposta == "s") {
+            mostraLegenda = true
+            legendaValida = true
+        } else if (resposta == "n") {
+            mostraLegenda = false
+            legendaValida = true
+        } else {
+            println(MENSAGEM_INVALIDA)
         }
     }
 
@@ -455,32 +463,32 @@ fun jogarNovoJogo() {
 
     // Minas
     var numMinas = 1
-    while (true) {
+    var minasValidadas = false
+    while (!minasValidadas) {
         println("Quantas minas (ou enter para o valor por omissao)?")
         val input = readln().trim()
         if (input.isEmpty()) {
             numMinas = calculaNumeroDeMinas(numLinhas, numColunas)
-            break
-        }
-
-        var valor = 0
-        var valido = true
-        var konta = 0
-        while (konta < input.length && valido) {
-            if (input[konta] !in '0'..'9'){
-                valido = false
+            minasValidadas = true
+        } else {
+            var valor = 0
+            var valido = true
+            var konta = 0
+            while (konta < input.length && valido) {
+                if (input[konta] !in '0'..'9') {
+                    valido = false
+                } else {
+                    valor = valor * 10 + (input[konta] - '0')
+                }
+                konta++
             }
-            else{
-                valor = valor * 10 + (input[konta] - '0')
+            if (valido && validaNumeroDeMinas(numLinhas, numColunas, valor)) {
+                numMinas = valor
+                minasValidadas = true
+            } else {
+                println(MENSAGEM_INVALIDA)
             }
-            konta++
         }
-
-        if (valido && validaNumeroDeMinas(numLinhas, numColunas, valor)) {
-            numMinas = valor
-            break
-        }
-        println(MENSAGEM_INVALIDA)
     }
 
     // Inicialização do tabuleiro
@@ -488,24 +496,25 @@ fun jogarNovoJogo() {
     preencheNumMinasNoTerreno(terreno)
 
     var posJogador = Pair(0, 0)
-    var underlyingCurrent = terreno[0][0].first  // conteúdo original da posição inicial
+    var underlyingCurrent = terreno[0][0].first
 
-    // Coloca o jogador na posição inicial e revela ao redor
     terreno[0][0] = Pair("J", true)
     revelaCelulasAoRedor(terreno, 0, 0)
 
     var tudoReveladoPermanente = false
-    var ajudas = 1  // Inicializa com 1 ajuda disponível
+    var ajudas = 1
+    var jogoAtivo = true
 
-    while (true) {
+    while (jogoAtivo) {
         criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente)
 
-        // Exibe mensagens de ajudas e minas no caminho
-        println("\nAinda tens $ajudas ajudas")
+        println("Ainda tens $ajudas ajudas")
         println("Faltam ${contaNumeroMinasNoCaminho(terreno, posJogador.first, posJogador.second)} minas até ao fim")
 
         println("Introduz a celula destino (ex: 2D)")
         val entrada = readln().trim()
+
+        var processado = false
 
         if (entrada.lowercase() == CHEAT_CODE) {
             tudoReveladoPermanente = true
@@ -518,76 +527,63 @@ fun jogarNovoJogo() {
                 }
                 coordenadaLinha++
             }
-            continue
+            processado = true
         }
 
-        if (entrada.lowercase() == "ajuda") {
+        if (!processado && entrada.lowercase() == "ajuda") {
             if (ajudas > 0) {
                 revelaUmaMina(terreno)
-                ajudas = 0  // Decrementa para 0 após usar
-                continue
+                ajudas = 0
             } else {
                 println(MENSAGEM_INVALIDA)
-                continue
             }
+            processado = true
         }
 
-        val destino = obtemCoordenadas(entrada)
-        if (destino == null || !validaCoordenadasDentroTerreno(destino, numLinhas, numColunas)) {
-            println("Movimento invalido.")
-            continue
-        }
+        if (!processado) {
+            val destino = obtemCoordenadas(entrada)
+            if (destino == null || !validaCoordenadasDentroTerreno(destino, numLinhas, numColunas)) {
+                println(MENSAGEM_INVALIDA)
+            } else if (!validaMovimentoJogador(posJogador, destino)) {
+                println(MENSAGEM_INVALIDA)
+            } else {
+                val (novaL, novaC) = destino
+                val conteudoNovo = terreno[novaL][novaC].first
 
-        if (!validaMovimentoJogador(posJogador, destino)) {
-            println("Movimento invalido.")
-            continue
-        }
+                if (conteudoNovo == "*") {
+                    terreno[novaL][novaC] = Pair("*", true)
+                    if (posJogador != Pair(0, 0)) {
+                        terreno[0][0] = Pair(" ", true)
+                    }
+                    criaTerreno(terreno, mostraLegenda, true)
+                    println(MSG_PERDEU)
+                    jogoAtivo = false
+                } else if (conteudoNovo == "f") {
+                    if (posJogador != Pair(0, 0)) {
+                        terreno[0][0] = Pair(" ", true)
+                    }
+                    criaTerreno(terreno, mostraLegenda, true)
+                    println(MSG_GANHOU)
+                    jogoAtivo = false
+                } else {
+                    val eraVisivel = terreno[novaL][novaC].second
 
-        val (novaL, novaC) = destino
-        val conteudoNovo = terreno[novaL][novaC].first
+                    if (!tudoReveladoPermanente) {
+                        escondeMatriz(terreno)
+                    }
 
-        // DERROTA - pisou numa mina
-        if (conteudoNovo == "*") {
-            terreno[novaL][novaC] = Pair("*", true)
-            // Força a posição inicial para vazio se não for a posição atual
-            if (posJogador != Pair(0, 0)) {
-                terreno[0][0] = Pair(" ", true)
-            }
-            criaTerreno(terreno, mostraLegenda, true)
-            println(MSG_PERDEU)
-            break
-        }
+                    terreno[posJogador.first][posJogador.second] = Pair(underlyingCurrent, false)
 
-        // VITÓRIA - chegou à bandeira
-        if (conteudoNovo == "f") {
-            // Força a posição inicial para vazio se não for a posição atual
-            if (posJogador != Pair(0, 0)) {
-                terreno[0][0] = Pair(" ", true)
-            }
-            criaTerreno(terreno, mostraLegenda, true)
-            println(MSG_GANHOU)
-            break
-        }
+                    underlyingCurrent = conteudoNovo
+                    terreno[novaL][novaC] = Pair("J", true)
+                    posJogador = destino
 
-        // Movimento normal
-        val eraVisivel = terreno[novaL][novaC].second
-
-        if (!tudoReveladoPermanente) {
-            escondeMatriz(terreno)
-        }
-
-        // Restaura a posição anterior (conteúdo original + invisível)
-        terreno[posJogador.first][posJogador.second] = Pair(underlyingCurrent, false)
-
-        // Move o jogador e guarda o novo conteúdo subjacente
-        underlyingCurrent = conteudoNovo
-        terreno[novaL][novaC] = Pair("J", true)
-        posJogador = destino
-
-        // Revela ao redor se necessário (chamada corrigida: não atribui retorno)
-        if (!tudoReveladoPermanente) {
-            if (!eraVisivel || conteudoNovo == " ") {
-                revelaMatriz(terreno, novaL, novaC)
+                    if (!tudoReveladoPermanente) {
+                        if (!eraVisivel || conteudoNovo == " ") {
+                            revelaMatriz(terreno, novaL, novaC)
+                        }
+                    }
+                }
             }
         }
     }
