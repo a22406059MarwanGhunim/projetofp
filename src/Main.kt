@@ -2,8 +2,8 @@ import java.io.File
 import kotlin.random.Random
 
 const val MENSAGEM_INVALIDA = "Resposta invalida."
-const val MSG_GANHOU = "Ganhaste o jogo!"
-const val MSG_PERDEU = "Perdeste o jogo!"
+const val MSG_GANHOU = "\nGanhaste o jogo!"
+const val MSG_PERDEU = "\nPerdeste o jogo!"
 const val CHEAT_CODE = "abracadabra"
 
 fun criaMenu(): String? {
@@ -84,20 +84,20 @@ fun validaTerreno(terreno: Array<Array<Pair<String, Boolean>>>): Boolean {
     var countJ = 0
     var countF = 0
 
-    var i = 0
-    while (i < numLinhas) {
-        var j = 0
-        while (j < numColunas) {
-            val celula = terreno[i][j].first
+    var coorenadaLinha = 0
+    while (coorenadaLinha < numLinhas) {
+        var coordenadaColuna = 0
+        while (coordenadaColuna < numColunas) {
+            val celula = terreno[coorenadaLinha][coordenadaColuna].first
             if (celula == "J") {
                 countJ++
             }
             if (celula == "f") {
                 countF++
             }
-            j++
+            coordenadaColuna++
         }
-        i++
+        coorenadaLinha++
     }
 
     // Só aceita se tiver exatamente 1 J e 1 f
@@ -470,16 +470,16 @@ fun lerFicheiroJogo(caminhoInput: String, linhasEsperadas: Int, colunasEsperadas
     var countJ = 0
     var countF = 0
 
-    var i = 0
-    while (i < linhasEsperadas) {
-        var j = 0
-        while (j < colunasEsperadas) {
-            val conteudo = matriz[i][j].first
+    var countLinhas = 0
+    while (countLinhas < linhasEsperadas) {
+        var countColunas = 0
+        while (countColunas < colunasEsperadas) {
+            val conteudo = matriz[countLinhas][countColunas].first
             if (conteudo == "J") countJ++
             if (conteudo == "f") countF++
-            j++
+            countColunas++
         }
-        i++
+        countLinhas++
     }
 
     if (countJ != 1 || countF != 1) {
@@ -489,170 +489,6 @@ fun lerFicheiroJogo(caminhoInput: String, linhasEsperadas: Int, colunasEsperadas
 
     // Tudo OK!
     return matriz
-}
-
-fun jogarNovoJogo() {
-    // Nome do jogador
-    var nome = ""
-    var nomeValido = false
-    while (!nomeValido) {
-        println("Introduz o nome do jogador")
-        val input = readln().trim()
-        if (validaNome(input)) {
-            nome = input
-            nomeValido = true
-        } else {
-            println(MENSAGEM_INVALIDA)
-        }
-    }
-
-    // Mostrar legenda (s/n)
-    var mostraLegenda = true
-    var legendaValida = false
-    while (!legendaValida) {
-        println("Mostrar legenda (s/n)?")
-        val resposta = readln().trim().lowercase()
-        if (resposta == "s") {
-            mostraLegenda = true
-            legendaValida = true
-        } else if (resposta == "n") {
-            mostraLegenda = false
-            legendaValida = true
-        } else {
-            println(MENSAGEM_INVALIDA)
-        }
-    }
-
-    // Linhas e colunas
-    val numLinhas = lerNumeroPositivo("Quantas linhas?")
-    val numColunas = lerNumeroPositivo("Quantas colunas?")
-
-    // Minas
-    var numMinas = 1
-    var minasValidadas = false
-    while (!minasValidadas) {
-        println("Quantas minas (ou enter para o valor por omissao)?")
-        val input = readln().trim()
-        if (input.isEmpty()) {
-            numMinas = calculaNumeroDeMinas(numLinhas, numColunas)
-            minasValidadas = true
-        } else {
-            var valor = 0
-            var valido = true
-            var konta = 0
-            while (konta < input.length && valido) {
-                if (input[konta] !in '0'..'9') {
-                    valido = false
-                } else {
-                    valor = valor * 10 + (input[konta] - '0')
-                }
-                konta++
-            }
-            if (valido && validaNumeroDeMinas(numLinhas, numColunas, valor)) {
-                numMinas = valor
-                minasValidadas = true
-            } else {
-                println(MENSAGEM_INVALIDA)
-            }
-        }
-    }
-
-    // Inicialização do tabuleiro
-    val terreno = geraMatrizTerreno(numLinhas, numColunas, numMinas)
-    preencheNumMinasNoTerreno(terreno)
-
-    var posJogador = Pair(0, 0)
-    var underlyingCurrent = terreno[0][0].first
-
-    terreno[0][0] = Pair("J", true)
-    revelaCelulasAoRedor(terreno, 0, 0)
-
-    var tudoReveladoPermanente = false
-    var ajudas = 1
-    var jogoAtivo = true
-
-    while (jogoAtivo) {
-        criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente)
-
-        println("\nAinda tens $ajudas ajudas")
-        println("Faltam ${contaNumeroMinasNoCaminho(terreno, posJogador.first, posJogador.second)} minas até ao fim")
-
-        println("Introduz a celula destino (ex: 2D)")
-        val entrada = readln().trim()
-
-        var processado = false
-
-        if (entrada.lowercase() == CHEAT_CODE) {
-            tudoReveladoPermanente = true
-            var coordenadaLinha = 0
-            while (coordenadaLinha < numLinhas) {
-                var coordenadaColuna = 0
-                while (coordenadaColuna < numColunas) {
-                    terreno[coordenadaLinha][coordenadaColuna] = Pair(terreno[coordenadaLinha][coordenadaColuna].first, true)
-                    coordenadaColuna++
-                }
-                coordenadaLinha++
-            }
-            processado = true
-        }
-
-        if (!processado && entrada.lowercase() == "ajuda") {
-            if (ajudas > 0) {
-                revelaUmaMina(terreno)
-                ajudas = 0
-            } else {
-                println(MENSAGEM_INVALIDA)
-            }
-            processado = true
-        }
-
-        if (!processado) {
-            val destino = obtemCoordenadas(entrada)
-            if (destino == null || !validaCoordenadasDentroTerreno(destino, numLinhas, numColunas)) {
-                println("Movimento invalido.")
-            } else if (!validaMovimentoJogador(posJogador, destino)) {
-                println("Movimento invalido.")
-            } else {
-                val (novaL, novaC) = destino
-                val conteudoNovo = terreno[novaL][novaC].first
-
-                if (conteudoNovo == "*") {
-                    terreno[novaL][novaC] = Pair("*", true)
-                    if (posJogador != Pair(0, 0)) {
-                        terreno[0][0] = Pair(" ", true)
-                    }
-                    criaTerreno(terreno, mostraLegenda, true)
-                    println(MSG_PERDEU)
-                    jogoAtivo = false
-                } else if (conteudoNovo == "f") {
-                    if (posJogador != Pair(0, 0)) {
-                        terreno[0][0] = Pair(" ", true)
-                    }
-                    criaTerreno(terreno, mostraLegenda, true)
-                    println(MSG_GANHOU)
-                    jogoAtivo = false
-                } else {
-                    val eraVisivel = terreno[novaL][novaC].second
-
-                    if (!tudoReveladoPermanente) {
-                        escondeMatriz(terreno)
-                    }
-
-                    terreno[posJogador.first][posJogador.second] = Pair(underlyingCurrent, false)
-
-                    underlyingCurrent = conteudoNovo
-                    terreno[novaL][novaC] = Pair("J", true)
-                    posJogador = destino
-
-                    if (!tudoReveladoPermanente) {
-                        if (!eraVisivel || conteudoNovo == " ") {
-                            revelaMatriz(terreno, novaL, novaC)
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 fun main() {
@@ -717,11 +553,15 @@ fun main() {
                     } else {
                         var valor = 0
                         var valido = true
-                        var k = 0
-                        while (k < input.length && valido) {
-                            if (input[k] !in '0'..'9') valido = false
-                            else valor = valor * 10 + (input[k] - '0')
-                            k++
+                        var konta = 0
+                        while (konta < input.length && valido) {
+                            if (input[konta] !in '0'..'9'){
+                                valido = false
+                            }
+                            else{
+                                valor = valor * 10 + (input[konta] - '0')
+                            }
+                            konta++
                         }
                         if (valido && validaNumeroDeMinas(numLinhas, numColunas, valor)) {
                             numMinas = valor
@@ -736,6 +576,9 @@ fun main() {
             } else { // opcao == "2" → Ler Jogo
                 println("Qual o ficheiro de jogo a carregar?")
                 val caminho = readln().trim()
+                if (mostraLegenda==false){
+                    println()
+                }
 
                 terreno = lerFicheiroJogo(caminho, numLinhas, numColunas)
 
@@ -775,6 +618,8 @@ fun main() {
             terreno[posJogador.first][posJogador.second] = Pair("J", true)
             revelaCelulasAoRedor(terreno, posJogador.first, posJogador.second)
 
+            var jJaSaiuDaOrigem = false
+
             // Força bandeira f sempre visível (como já tinhas)
             var k = 0
             while (k < numLinhas) {
@@ -807,14 +652,14 @@ fun main() {
 
                 if (entrada.lowercase() == CHEAT_CODE) {
                     tudoReveladoPermanente = true
-                    var cl = 0
-                    while (cl < numLinhas) {
-                        var cc = 0
-                        while (cc < numColunas) {
-                            terreno[cl][cc] = Pair(terreno[cl][cc].first, true)
-                            cc++
+                    var coordenadaLinha = 0
+                    while (coordenadaLinha < numLinhas) {
+                        var coordenadaColuna = 0
+                        while (coordenadaColuna < numColunas) {
+                            terreno[coordenadaLinha][coordenadaColuna] = Pair(terreno[coordenadaLinha][coordenadaColuna].first, true)
+                            coordenadaColuna++
                         }
-                        cl++
+                        coordenadaLinha++
                     }
                     processado = true
                 }
@@ -841,16 +686,10 @@ fun main() {
 
                         if (conteudoNovo == "*") {
                             terreno[novaL][novaC] = Pair("*", true)
-                            if (posJogador != Pair(0, 0)) {
-                                terreno[0][0] = Pair(" ", true)
-                            }
                             criaTerreno(terreno, mostraLegenda, true)
                             println(MSG_PERDEU)
                             jogoAtivo = false
                         } else if (conteudoNovo == "f") {
-                            if (posJogador != Pair(0, 0)) {
-                                terreno[0][0] = Pair(" ", true)
-                            }
                             criaTerreno(terreno, mostraLegenda, true)
                             println(MSG_GANHOU)
                             jogoAtivo = false
@@ -862,6 +701,13 @@ fun main() {
                             }
 
                             terreno[posJogador.first][posJogador.second] = Pair(underlyingCurrent, false)
+
+                            if (!jJaSaiuDaOrigem && posJogador == Pair(0, 0)) {
+                                val numMinasAdjacentes = contaMinasPerto(terreno, 0, 0)
+                                val novoConteudo = if (numMinasAdjacentes == 0) " " else numMinasAdjacentes.toString()
+                                terreno[0][0] = Pair(novoConteudo, false)  // false porque é após movimento normal
+                                jJaSaiuDaOrigem = true
+                            }
 
                             underlyingCurrent = conteudoNovo
                             terreno[novaL][novaC] = Pair("J", true)
