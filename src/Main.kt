@@ -494,18 +494,6 @@ fun jogarNovoJogo() {
     val terreno = geraMatrizTerreno(numLinhas, numColunas, numMinas)
     preencheNumMinasNoTerreno(terreno)
 
-    var i = 0
-    while (i < numLinhas) {
-        var j = 0
-        while (j < numColunas) {
-            if (terreno[i][j].first == " ") {
-                terreno[i][j] = Pair(" ", true)  // Espaços vazios sempre visíveis
-            }
-            j++
-        }
-        i++
-    }
-
     var posJogador = Pair(0, 0)
     var underlyingCurrent = terreno[0][0].first
 
