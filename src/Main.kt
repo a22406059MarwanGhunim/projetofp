@@ -296,70 +296,60 @@ fun escondeMatriz(terreno: Array<Array<Pair<String, Boolean>>>) {
 
 fun criaTerreno(terreno: Array<Array<Pair<String, Boolean>>>, mostraLegenda: Boolean = true, mostraTudo: Boolean = false): String {
     val numLinhas = terreno.size
-    if (numLinhas == 0){
-        return ""
-    }
+    if (numLinhas == 0) return ""
     val numColunas = terreno[0].size
+
+    var resultado = ""
+
     // Legenda superior
     if (mostraLegenda) {
-        print("    ") // 4 espaços
+        resultado += "    "
         var count = 0
         while (count < numColunas) {
-            print(('A' + count))
-            if (count < numColunas - 1){
-                print("   ")
-            } // 3 espaços
+            resultado += ('A' + count)
+            if (count < numColunas - 1) {
+                resultado += "   "
+            }
             count++
         }
-        print("    ")
-        println()
+        resultado += "    \n"
     }
+
     var linha = 0
     while (linha < numLinhas) {
         if (mostraLegenda) {
             val numStr = (linha + 1).toString()
-            if (numStr.length == 1){
-                print(" ")
-            }
-            print(numStr)
-            print(" ") // 1 espaço depois do número
+            if (numStr.length == 1) resultado += " "
+            resultado += numStr
+            resultado += " "
         }
+
         var coluna = 0
         while (coluna < numColunas) {
             val (conteudo, visivel) = terreno[linha][coluna]
             val deveMostrar = mostraTudo || visivel
-            val simbolo = if (deveMostrar){
-                conteudo
-            } else{
-                " "
-            }
-            print(" $simbolo ")
-            if (coluna < numColunas - 1){
-                print("|")
-            }
+            val simbolo = if (deveMostrar) conteudo else " "
+            resultado += " $simbolo "
+            if (coluna < numColunas - 1) resultado += "|"
             coluna++
         }
-        println("   ")
+        resultado += "\n"
+
         if (linha < numLinhas - 1) {
-            if (mostraLegenda){
-                print("   ")
-            }
+            if (mostraLegenda) resultado += "   "
             var sep = 0
             while (sep < numColunas) {
-                print("---")
-                if (sep < numColunas - 1){
-                    print("+")
-                }
+                resultado += "---"
+                if (sep < numColunas - 1) resultado += "+"
                 sep++
             }
-            print("   ")
-            println()
+            resultado += "   \n"
         }
         linha++
     }
-    return ""
-}
+    return resultado
 
+}
 fun lerNumeroPositivo(mensagem: String): Int {
     while (true) {
         println(mensagem)
@@ -640,7 +630,7 @@ fun main() {
             var jogoAtivo = true
 
             while (jogoAtivo) {
-                criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente)
+                print(criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente))
 
                 println("\nAinda tens $ajudas ajudas")
                 println("Faltam ${contaNumeroMinasNoCaminho(terreno, posJogador.first, posJogador.second)} minas até ao fim")
@@ -686,11 +676,11 @@ fun main() {
 
                         if (conteudoNovo == "*") {
                             terreno[novaL][novaC] = Pair("*", true)
-                            criaTerreno(terreno, mostraLegenda, true)
+                            print(criaTerreno(terreno, mostraLegenda, true))
                             println(MSG_PERDEU)
                             jogoAtivo = false
                         } else if (conteudoNovo == "f") {
-                            criaTerreno(terreno, mostraLegenda, true)
+                            print(criaTerreno(terreno, mostraLegenda, true))
                             println(MSG_GANHOU)
                             jogoAtivo = false
                         } else {
