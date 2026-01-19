@@ -176,21 +176,19 @@ fun geraMatrizTerreno(numLinhas: Int, numColunas: Int, numMinas: Int): Array<Arr
 
 fun preencheNumMinasNoTerreno(terreno: Array<Array<Pair<String, Boolean>>>) {
     val linhas = terreno.size
+    if (linhas == 0) return
     val colunas = terreno[0].size
+
     var coordenadaLinha = 0
     while (coordenadaLinha < linhas) {
         var coordenadaColuna = 0
         while (coordenadaColuna < colunas) {
-            val atual = terreno[coordenadaLinha][coordenadaColuna].first
-            if (atual != "*" && atual != "J" && atual != "f") {
+            val conteudo = terreno[coordenadaLinha][coordenadaColuna].first
+            if (conteudo != "*" && conteudo != "J" && conteudo != "f") {
                 val num = contaMinasPerto(terreno, coordenadaLinha, coordenadaColuna)
-                terreno[coordenadaLinha][coordenadaColuna] = Pair(
-                    if (num == 0){
-                        " "
-                    } else{
-                        num.toString()
-                    }, terreno[coordenadaLinha][coordenadaColuna].second
-                )
+                val novoTexto = if (num == 0) " " else num.toString()
+                // Força visibilidade = false para números e espaços
+                terreno[coordenadaLinha][coordenadaColuna] = Pair(novoTexto, false)
             }
             coordenadaColuna++
         }
@@ -207,6 +205,7 @@ fun revelaCelulasAoRedor(terreno: Array<Array<Pair<String, Boolean>>>, linha: In
         var coordenadaColuna = x1
         while (coordenadaColuna <= x2) {
             val conteudo = terreno[coordenadaLinha][coordenadaColuna].first
+            val novaVisibilidade = if (conteudo == " ") true else true
             if (conteudo != "*" && conteudo != "J" && conteudo != "f") {
                 terreno[coordenadaLinha][coordenadaColuna] = Pair(conteudo, true)
             }
@@ -494,6 +493,18 @@ fun jogarNovoJogo() {
     // Inicialização do tabuleiro
     val terreno = geraMatrizTerreno(numLinhas, numColunas, numMinas)
     preencheNumMinasNoTerreno(terreno)
+
+    var i = 0
+    while (i < numLinhas) {
+        var j = 0
+        while (j < numColunas) {
+            if (terreno[i][j].first == " ") {
+                terreno[i][j] = Pair(" ", true)  // Espaços vazios sempre visíveis
+            }
+            j++
+        }
+        i++
+    }
 
     var posJogador = Pair(0, 0)
     var underlyingCurrent = terreno[0][0].first
