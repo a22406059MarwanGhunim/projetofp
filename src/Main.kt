@@ -445,7 +445,6 @@ fun cicloJogo(
     while (true) {
         criaTerreno(terreno, mostraLegenda, tudoReveladoPermanente)
 
-        // Contador de minas entre J e f
         val minasFaltam = contaNumeroMinasNoCaminho(terreno, posJogador.first, posJogador.second)
         println("Ainda tens $ajudasRestantes ajudas")
         println("Faltam $minasFaltam minas até ao fim")
